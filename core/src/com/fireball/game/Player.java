@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
-public class Player {
+public class Player implements Animatable {
     private Animation<TextureRegion> idleAnimation;
     private Animation<TextureRegion> spellAnimation;
     private Texture idleSheet;
@@ -50,6 +50,7 @@ public class Player {
         stateTime = 0f;
     }
 
+    @Override
     public void animate(SpriteBatch spriteBatch, float deltaTime) {
         stateTime += deltaTime;
 
@@ -67,6 +68,7 @@ public class Player {
         }
     }
 
+    @Override
     public void dispose() {
         idleSheet.dispose();
         spellSheet.dispose();
