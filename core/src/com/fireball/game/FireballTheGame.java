@@ -14,12 +14,23 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.Box2D;
+import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
+import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.codeandweb.physicseditor.PhysicsShapeCache;
+
+import java.util.ArrayList;
 
 public class FireballTheGame extends ApplicationAdapter {
 	Animation<TextureRegion> candleAnimation;
 	Animation<TextureRegion> fireballAnimation;
+	ArrayList<Fireball> fireballs;
 	Texture litCandleSheet;
 	Texture fireballSheet;
 	Player player;
@@ -31,22 +42,45 @@ public class FireballTheGame extends ApplicationAdapter {
 	SpriteBatch spriteBatch;
 	ShapeRenderer shapeRenderer;
 
+	// Box2D world stuff
+	World world;
+	static final float STEP_TIME = 1f / 60f;
+	static final int VELOCITY_ITERATIONS = 6;
+	static final int POSITION_ITERATIONS = 2;
+	float accumulator = 0;
+	PhysicsShapeCache physicsBodies;
+	Box2DDebugRenderer debugRenderer;
+	final float SCALE = 0.05f;
+	Body ground;
+
 	float stateTime;
 	float fireStateTime;
 	
 	@Override
 	public void create () {
+		Box2D.init();
+		world = new World(new Vector2(0, -10), true);
+		physicsBodies = new PhysicsShapeCache("physics.xml");
+		debugRenderer = new Box2DDebugRenderer();
+
+		// Build the resources and animations for the game
+		Candle.build();
+		Fireball.build();
+		Player.build();
+
 		player = new Player();
-		candle = new Candle();
-		fireball = new Fireball();
+		candle = new Candle(world, physicsBodies);
+		fireball = new Fireball(world, physicsBodies);
+		fireballs = new ArrayList<Fireball>();
 		spriteBatch = new SpriteBatch();
 		shapeRenderer = new ShapeRenderer();
-		camera = new OrthographicCamera(1280, 720);
-		camera.position.set(1280/ 2, 720/2, 0);
-		camera.update();
-		//viewport = new FitViewport(720, 480, camera);
-		spriteBatch.setProjectionMatrix(camera.combined);
-		shapeRenderer.setProjectionMatrix(camera.combined);
+		camera = new OrthographicCamera();
+//		camera.position.set(500, 500, 0);
+//		camera.update();
+		viewport = new FitViewport(50, 28, camera);
+//		viewport.update(100, 100, true);
+//		spriteBatch.setProjectionMatrix(camera.combined);
+//		shapeRenderer.setProjectionMatrix(camera.combined);
 
 		Gdx.input.setInputProcessor(new GestureDetector(new GestureDetector.GestureListener() {
             @Override
@@ -100,7 +134,8 @@ public class FireballTheGame extends ApplicationAdapter {
 
 	@Override
 	public void render () {
-		Gdx.gl.glClearColor(.7f, 0.7f, 0.7f, 1);
+		stepWorld();
+		Gdx.gl.glClearColor(.5f, 0.5f, 0.5f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		float dt = Gdx.graphics.getDeltaTime();
 
@@ -109,18 +144,70 @@ public class FireballTheGame extends ApplicationAdapter {
 		candle.animate(spriteBatch, dt);
 		fireball.animate(spriteBatch, dt);
 		spriteBatch.end();
-		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-		shapeRenderer.setColor(Color.RED);
-		shapeRenderer.rect(10, 430, 50, 50);
-		shapeRenderer.end();
+//		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+//		shapeRenderer.setColor(Color.RED);
+//		shapeRenderer.rect(10, 430, 50, 50);
+//		shapeRenderer.end();
+		debugRenderer.render(world, camera.combined);
 	}
 	
 	@Override
 	public void dispose () {
 		spriteBatch.dispose();
-		player.dispose();
-		candle.dispose();
-		fireball.dispose();
+		Player.dispose();
+		Candle.dispose();
+		Fireball.dispose();
 		litCandleSheet.dispose();
+		world.dispose();
+		debugRenderer.dispose();
+	}
+
+	@Override
+	public void resize(int width, int height) {
+		super.resize(width, height);
+
+		viewport.update(width, height, true);
+		spriteBatch.setProjectionMatrix(camera.combined);
+		shapeRenderer.setProjectionMatrix(camera.combined);
+		createGround();
+	}
+
+	private Body createBody(String name, float x, float y, float rotation) {
+		Body body = physicsBodies.createBody(name, world, SCALE, SCALE);
+		body.setTransform(x, y, rotation);
+		return body;
+	}
+
+	private void createGround() {
+		if (ground != null) world.destroyBody(ground);
+
+		BodyDef bodyDef = new BodyDef();
+		bodyDef.type = BodyDef.BodyType.StaticBody;
+
+		FixtureDef fixtureDef = new FixtureDef();
+		fixtureDef.friction = 1;
+
+		PolygonShape shape = new PolygonShape();
+		shape.setAsBox(camera.viewportWidth, 1);
+
+		fixtureDef.shape = shape;
+
+		ground = world.createBody(bodyDef);
+		ground.createFixture(fixtureDef);
+		ground.setTransform(0, 0, 0);
+
+		shape.dispose();
+	}
+
+	private void stepWorld() {
+		float delta = Gdx.graphics.getDeltaTime();
+
+		accumulator += Math.min(delta, 0.25f);
+
+		if (accumulator >= STEP_TIME) {
+			accumulator -= STEP_TIME;
+
+			world.step(STEP_TIME, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+		}
 	}
 }
