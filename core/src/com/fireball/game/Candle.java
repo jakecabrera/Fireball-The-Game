@@ -5,8 +5,6 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.physics.box2d.Body;
-import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.World;
 import com.codeandweb.physicseditor.PhysicsShapeCache;
 
@@ -16,7 +14,6 @@ public class Candle extends GameObject {
     private static Animation<TextureRegion> litCandleAnimation;
     private float stateTime = 0;
     private boolean isLit = false;
-    private Body body;
 
     // Sprite sheet frame rows and cols
     private static final int FRAME_ROWS = 5;
@@ -25,9 +22,9 @@ public class Candle extends GameObject {
     // Scaling
     private final float SCALE = 0.05f;
 
-    public Candle(World world, PhysicsShapeCache physicsBodies) {
-        x = 20;
-        y = 0;
+    public Candle(World world, PhysicsShapeCache physicsBodies, float x, float y) {
+        this.x = x;
+        this.y = y;
         w = litCandleSheet.getWidth() / FRAME_COLS;
         h = litCandleSheet.getHeight() / FRAME_ROWS;
         stateTime = 0f;
@@ -35,7 +32,7 @@ public class Candle extends GameObject {
         //BodyDef bodyDef = new BodyDef();
         //bodyDef.type = BodyDef.BodyType.StaticBody;
         body = physicsBodies.createBody("unlitCandle", world, SCALE, SCALE);
-
+        body.setUserData(this);
         body.setTransform(x, y, 0);
     }
 
@@ -61,6 +58,8 @@ public class Candle extends GameObject {
 
     @Override
     public void animate(SpriteBatch spriteBatch, float deltaTime) {
+        if (body == null) return;
+
         Vector2 position = body.getPosition();
         x = position.x;
         y = position.y;
