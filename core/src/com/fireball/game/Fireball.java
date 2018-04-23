@@ -1,13 +1,16 @@
 package com.fireball.game;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.Box2D;
+import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.codeandweb.physicseditor.PhysicsShapeCache;
 
@@ -31,10 +34,13 @@ public class Fireball extends GameObject {
         this.y = y;
         this.vx = vx * SPEED;
         this.vy = vy * SPEED;
-        w = spriteSheet.getWidth() / FRAME_COLS;
-        h = spriteSheet.getHeight() / FRAME_ROWS;
-        rot = (float) Math.toDegrees(Math.atan2(-(double)vy, (double)vx)) - 90;
-        System.out.println(rot);
+        w = spriteSheet.getWidth() / FRAME_COLS * SCALE;
+        h = spriteSheet.getHeight() / FRAME_ROWS * SCALE;
+        rot = (float) Math.toDegrees(Math.atan2(-(double)vy, (double)vx));
+
+        float newX = x - ((float) Math.cos(Math.toRadians(rot)));
+        float newY = y - ((float) Math.sin(Math.toRadians(rot)));
+
         exploded = false;
         stateTime = 0f;
 
@@ -44,7 +50,8 @@ public class Fireball extends GameObject {
         vel.x = vx * SPEED;
         vel.y = -vy * SPEED;
         body.setLinearVelocity(vel);
-        body.setTransform(x, y, (float)Math.toRadians(rot));
+        //body.setTransform(newX, newY, (float)Math.toRadians(rot));
+        body.setTransform(x, y, 0f);
     }
 
     public static void build() {
@@ -65,28 +72,33 @@ public class Fireball extends GameObject {
     @Override
     public void animate(SpriteBatch spriteBatch, float deltaTime) {
         if (body == null) return;
-        Vector2 position = body.getPosition();
+        if (x > FireballTheGame.WORLD_WIDTH || x > FireballTheGame.WORLD_HEIGHT) {
+            exploded = true;
+        }
+
         Vector2 vel = body.getLinearVelocity();
-        x = position.x;
-        y = position.y;
-        //rot = (float) Math.toDegrees(body.getAngle());
+
+        Vector2 circlePos = ((CircleShape) body.getFixtureList().get(0).getShape()).getPosition();
+        Vector2 pos = body.getPosition();
+
         rot = (float) Math.toDegrees(Math.atan2((double)vel.y, (double)vel.x)) - 90;
-        body.setTransform(position, (float)Math.toRadians(rot));
+
+        x = pos.y + circlePos.x;
+        y = pos.x + circlePos.y;
 
         stateTime += deltaTime;
         TextureRegion keyFrame = animation.getKeyFrame(stateTime, true);
         Sprite sprite = new Sprite(keyFrame);
-        sprite.setOrigin(0f,0f);
-        sprite.setPosition(x, y);
-        sprite.setScale(SCALE);
+        sprite.setOrigin(circlePos.x, circlePos.y);
         sprite.setRotation(rot);
+        sprite.setBounds(pos.x, pos.y, w, h);
         sprite.draw(spriteBatch);
     }
 
-    public Explosion explode(World world) {
+    public Explosion explode(float x, float y) {
         exploded = true;
-        //world.destroyBody(body);
-        return new Explosion(x, y, rot);
+        Vector2 circlePos = ((CircleShape) body.getFixtureList().get(0).getShape()).getPosition();
+        return new Explosion(x, y, rot, circlePos.x, circlePos.y);
     }
 
     public boolean finished() {

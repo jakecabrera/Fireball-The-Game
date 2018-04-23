@@ -3,6 +3,7 @@ package com.fireball.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -36,6 +37,7 @@ public class FireballTheGame extends ApplicationAdapter {
 	Animation<TextureRegion> fireballAnimation;
 	ArrayList<Fireball> fireballs;
 	ArrayList<Explosion> explosions;
+	ArrayList<Candle> candles;
 	ArrayList<GameObject> destroyables;
 	Texture litCandleSheet;
 	Texture fireballSheet;
@@ -43,6 +45,8 @@ public class FireballTheGame extends ApplicationAdapter {
 	Candle candle;
 	Candle candle2;
 	Fireball fireball;
+	Background background;
+
 	Viewport viewport;
 	Camera camera;
 
@@ -60,6 +64,10 @@ public class FireballTheGame extends ApplicationAdapter {
 	final float SCALE = 0.05f;
 	Body ground;
 
+	// Screen constants
+    static final float WORLD_HEIGHT = 32;
+    static final float WORLD_WIDTH = 50;
+
 	float stateTime;
 	float fireStateTime;
 	
@@ -75,20 +83,26 @@ public class FireballTheGame extends ApplicationAdapter {
 		Fireball.build();
 		Player.build();
 		Explosion.build();
+		Background.build();
 
+		background = new Background();
 		player = new Player();
-		candle = new Candle(world, physicsBodies, 20, 0);
-		candle2 = new Candle(world, physicsBodies, 40, 0);
+		candles = new ArrayList<Candle>();
 		fireballs = new ArrayList<Fireball>();
 		explosions = new ArrayList<Explosion>();
 		destroyables = new ArrayList<GameObject>();
+
+		// Create some candles
+		candles.add(new Candle(world, physicsBodies, 40, 0f));
+		candles.add(new Candle(world, physicsBodies, 30, 0f));
+		candles.add(new Candle(world, physicsBodies, 20, 0f));
 
 		spriteBatch = new SpriteBatch();
 		shapeRenderer = new ShapeRenderer();
 		camera = new OrthographicCamera();
 //		camera.position.set(500, 500, 0);
 //		camera.update();
-		viewport = new FitViewport(50, 28, camera);
+		viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
 //		viewport.update(100, 100, true);
 //		spriteBatch.setProjectionMatrix(camera.combined);
 //		shapeRenderer.setProjectionMatrix(camera.combined);
@@ -111,9 +125,10 @@ public class FireballTheGame extends ApplicationAdapter {
 
             @Override
             public boolean fling(float velocityX, float velocityY, int button) {
-                player.castSpell();
-                fireballs.add(new Fireball(world, physicsBodies, 10, 15, velocityX, velocityY));
-                //candle.ignite();
+                if (velocityX > 0) {
+					player.castSpell();
+					fireballs.add(new Fireball(world, physicsBodies, 7, 5, velocityX, velocityY));
+				}
                 return false;
             }
 
@@ -152,24 +167,30 @@ public class FireballTheGame extends ApplicationAdapter {
 				Candle candle = null;
 
 				if (a.getUserData().getClass() == Fireball.class) {
+					System.out.println("A is Fireball");
 					fireball = (Fireball) a.getUserData();
 					if (b.getUserData().getClass() == Candle.class) {
+						System.out.println("B is Candle");
 						candle = (Candle) b.getUserData();
 					}
 				} else if (b.getUserData().getClass() == Fireball.class) {
+					System.out.println("B is Fireball");
 					fireball = (Fireball) b.getUserData();
 					if (a.getUserData().getClass() == Candle.class) {
+						System.out.println("A is Candle");
 						candle = (Candle) a.getUserData();
 					}
+				}
+
+				if (candle != null) {
+					candle.ignite();
 				}
 
 				if (fireball != null) {
 					fireballs.remove(fireball);
 					if (!destroyables.contains(fireball)) destroyables.add(fireball);
-					explosions.add(fireball.explode(world));
-					if (candle != null) {
-						candle.ignite();
-					}
+					Vector2[] contacts = contact.getWorldManifold().getPoints();
+					explosions.add(fireball.explode(contacts[0].x, contacts[0].y));
 				}
 			}
 
@@ -194,23 +215,22 @@ public class FireballTheGame extends ApplicationAdapter {
 	public void render () {
 		stepWorld();
 		destroyDeadBodies();
-		Gdx.gl.glClearColor(.5f, 0.5f, 0.5f, 1);
+		Gdx.gl.glClearColor(0f, 0f, 0f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		float dt = Gdx.graphics.getDeltaTime();
 
 		spriteBatch.begin();
+		background.animate(spriteBatch, dt);
 		player.animate(spriteBatch, dt);
-		candle.animate(spriteBatch, dt);
-		candle2.animate(spriteBatch, dt);
-		//fireball.animate(spriteBatch, dt);
+		animateCandles(spriteBatch, dt);
 		animateFireballs(spriteBatch, dt);
 		animateExplosions(spriteBatch, dt);
 		spriteBatch.end();
-//		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+//		shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
 //		shapeRenderer.setColor(Color.RED);
-//		shapeRenderer.rect(10, 430, 50, 50);
+//		shapeRenderer.rect(0, 0.1f, WORLD_WIDTH, WORLD_HEIGHT - 0.1f);
 //		shapeRenderer.end();
-		debugRenderer.render(world, camera.combined);
+//		debugRenderer.render(world, camera.combined);
 	}
 	
 	@Override
@@ -221,6 +241,7 @@ public class FireballTheGame extends ApplicationAdapter {
 		Fireball.dispose();
 		litCandleSheet.dispose();
 		world.dispose();
+		background.dispose();
 		debugRenderer.dispose();
 	}
 
@@ -279,20 +300,20 @@ public class FireballTheGame extends ApplicationAdapter {
 			fireball.animate(spriteBatch, deltaTime);
 		}
 
-//		List<Integer> indexes = new ArrayList<Integer>();
-//		for (int i = 0; i < fireballs.size(); i++) {
-//			if (fireballs.get(i).finished()) indexes.add(i);
-//		}
-//		for (int i = indexes.size()-1; i >= 0; i--) {
-//		    fireballs.remove(indexes.get(i));
-//        }
+		List<Integer> indexes = new ArrayList<Integer>();
+		for (int i = 0; i < fireballs.size(); i++) {
+			if (fireballs.get(i).finished()) indexes.add(i);
+		}
+		for (int i = indexes.size()-1; i >= 0; i--) {
+		    fireballs.remove(indexes.get(i));
+        }
 	}
 
 
 
 	private void animateExplosions(SpriteBatch spriteBatch, float deltaTime) {
 		for (Explosion explosion: explosions) {
-			explosion.animate(spriteBatch, deltaTime);
+			explosion.animate(spriteBatch, deltaTime, shapeRenderer);
 		}
 
 		List<Integer> indexes = new ArrayList<Integer>();
@@ -303,6 +324,12 @@ public class FireballTheGame extends ApplicationAdapter {
         for (int i = indexes.size()-1; i >= 0; i--) {
             explosions.remove(indexes.get(i));
         }
+	}
+
+	private void animateCandles(SpriteBatch spriteBatch, float deltaTime) {
+		for (Candle candle: candles) {
+			candle.animate(spriteBatch, deltaTime);
+		}
 	}
 
 	private void destroyDeadBodies() {

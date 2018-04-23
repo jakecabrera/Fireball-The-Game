@@ -9,14 +9,12 @@
 		<allow_sleep/>
 		<fixture>
 			<density>2</density>
-			<friction>0.2</friction>
-			<restitution>0.2</restitution>
+			<friction>0</friction>
+			<restitution>0</restitution>
 			<filter_category_bits>1</filter_category_bits>
 			<filter_mask_bits>65535</filter_mask_bits>
 			<filter_group_index>0</filter_group_index>
-			<polygon>70.0000, 120.0000, 70.0000, 110.0000, 80.0000, 110.0000, 80.0000, 120.0000</polygon>
-			<polygon>90.0000, 80.0000, 90.0000, 110.0000, 70.0000, 110.0000, 60.0000, 80.0000</polygon>
-			<polygon>60.0000, 110.0000, 60.0000, 80.0000, 70.0000, 110.0000</polygon>
+			<circle x="74.778" y="97.002" r="13.845"/>
 		</fixture>
 	</body>
 

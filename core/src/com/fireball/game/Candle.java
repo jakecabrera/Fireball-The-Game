@@ -14,6 +14,8 @@ public class Candle extends GameObject {
     private static Animation<TextureRegion> litCandleAnimation;
     private float stateTime = 0;
     private boolean isLit = false;
+    private float timeLit = 0f;
+    private float timeSinceStateChange = 0f;
 
     // Sprite sheet frame rows and cols
     private static final int FRAME_ROWS = 5;
@@ -53,12 +55,18 @@ public class Candle extends GameObject {
     }
 
     public void ignite() {
-        isLit = !isLit;
+        if (timeLit == 0) {
+            timeLit = stateTime;
+            System.out.println(!isLit);
+            isLit = !isLit;
+        }
     }
 
     @Override
     public void animate(SpriteBatch spriteBatch, float deltaTime) {
         if (body == null) return;
+
+        if (stateTime - timeLit > 0.5f) timeLit = 0;
 
         Vector2 position = body.getPosition();
         x = position.x;

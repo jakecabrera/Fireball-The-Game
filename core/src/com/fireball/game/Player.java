@@ -23,8 +23,8 @@ public class Player extends GameObject {
     private final float SCALE = 0.05f;
 
     public Player() {
-        x = 0;
-        y = 0;
+        x = -2;
+        y = 0f;
         w = idleSheet.getWidth() / IDLE_FRAME_COLS;
         h = idleSheet.getHeight() / IDLE_FRAME_ROWS;
         isCasting = false;
