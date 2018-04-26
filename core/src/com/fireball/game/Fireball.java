@@ -96,6 +96,8 @@ public class Fireball extends GameObject {
         sprite.setScale(SCALE);
         //sprite.setBounds((float)(pos.x - w * Math.cos(bodyAngle)), pos.y, w, h);
         sprite.draw(spriteBatch);
+
+        // lol
     }
 
     public Explosion explode(float x, float y) {
