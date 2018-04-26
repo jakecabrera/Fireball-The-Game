@@ -3,13 +3,9 @@ package com.fireball.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.Vector2;
@@ -33,18 +29,11 @@ import java.util.Iterator;
 import java.util.List;
 
 public class FireballTheGame extends ApplicationAdapter {
-	Animation<TextureRegion> candleAnimation;
-	Animation<TextureRegion> fireballAnimation;
 	ArrayList<Fireball> fireballs;
 	ArrayList<Explosion> explosions;
 	ArrayList<Candle> candles;
 	ArrayList<GameObject> destroyables;
-	Texture litCandleSheet;
-	Texture fireballSheet;
 	Player player;
-	Candle candle;
-	Candle candle2;
-	Fireball fireball;
 	Background background;
 
 	Viewport viewport;
@@ -67,9 +56,6 @@ public class FireballTheGame extends ApplicationAdapter {
 	// Screen constants
     static final float WORLD_HEIGHT = 32;
     static final float WORLD_WIDTH = 50;
-
-	float stateTime;
-	float fireStateTime;
 	
 	@Override
 	public void create () {
@@ -100,12 +86,7 @@ public class FireballTheGame extends ApplicationAdapter {
 		spriteBatch = new SpriteBatch();
 		shapeRenderer = new ShapeRenderer();
 		camera = new OrthographicCamera();
-//		camera.position.set(500, 500, 0);
-//		camera.update();
 		viewport = new FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera);
-//		viewport.update(100, 100, true);
-//		spriteBatch.setProjectionMatrix(camera.combined);
-//		shapeRenderer.setProjectionMatrix(camera.combined);
 
 		Gdx.input.setInputProcessor(new GestureDetector(new GestureDetector.GestureListener() {
             @Override
@@ -167,26 +148,23 @@ public class FireballTheGame extends ApplicationAdapter {
 				Candle candle = null;
 
 				if (a.getUserData().getClass() == Fireball.class) {
-					System.out.println("A is Fireball");
+//					System.out.println("A is Fireball");
 					fireball = (Fireball) a.getUserData();
 					if (b.getUserData().getClass() == Candle.class) {
-						System.out.println("B is Candle");
+//						System.out.println("B is Candle");
 						candle = (Candle) b.getUserData();
 					}
 				} else if (b.getUserData().getClass() == Fireball.class) {
-					System.out.println("B is Fireball");
+//					System.out.println("B is Fireball");
 					fireball = (Fireball) b.getUserData();
 					if (a.getUserData().getClass() == Candle.class) {
-						System.out.println("A is Candle");
+//						System.out.println("A is Candle");
 						candle = (Candle) a.getUserData();
 					}
 				}
 
-				if (candle != null) {
+				if (fireball != null && !fireball.finished() && candle != null) {
 					candle.ignite();
-				}
-
-				if (fireball != null) {
 					fireballs.remove(fireball);
 					if (!destroyables.contains(fireball)) destroyables.add(fireball);
 					Vector2[] contacts = contact.getWorldManifold().getPoints();
@@ -220,17 +198,19 @@ public class FireballTheGame extends ApplicationAdapter {
 		float dt = Gdx.graphics.getDeltaTime();
 
 		spriteBatch.begin();
-		background.animate(spriteBatch, dt);
+//		background.animate(spriteBatch, dt);
 		player.animate(spriteBatch, dt);
 		animateCandles(spriteBatch, dt);
 		animateFireballs(spriteBatch, dt);
 		animateExplosions(spriteBatch, dt);
 		spriteBatch.end();
+
+		// Debug stuff
 //		shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
 //		shapeRenderer.setColor(Color.RED);
 //		shapeRenderer.rect(0, 0.1f, WORLD_WIDTH, WORLD_HEIGHT - 0.1f);
 //		shapeRenderer.end();
-//		debugRenderer.render(world, camera.combined);
+		debugRenderer.render(world, camera.combined);
 	}
 	
 	@Override
@@ -239,7 +219,6 @@ public class FireballTheGame extends ApplicationAdapter {
 		Player.dispose();
 		Candle.dispose();
 		Fireball.dispose();
-		litCandleSheet.dispose();
 		world.dispose();
 		background.dispose();
 		debugRenderer.dispose();
@@ -302,11 +281,15 @@ public class FireballTheGame extends ApplicationAdapter {
 
 		List<Integer> indexes = new ArrayList<Integer>();
 		for (int i = 0; i < fireballs.size(); i++) {
-			if (fireballs.get(i).finished()) indexes.add(i);
+			if (fireballs.get(i).finished()) {
+				indexes.add(i);
+				if (!destroyables.contains(fireballs.get(i))) destroyables.add(fireballs.get(i));
+			}
 		}
-		for (int i = indexes.size()-1; i >= 0; i--) {
-		    fireballs.remove(indexes.get(i));
-        }
+		fireballs.removeAll(indexes);
+//		for (int i = indexes.size()-1; i >= 0; i--) {
+//		    fireballs.remove(indexes.get(i));
+//        }
 	}
 
 
@@ -320,10 +303,10 @@ public class FireballTheGame extends ApplicationAdapter {
 		for (int i = 0; i < explosions.size(); i++) {
 		    if (explosions.get(i).finished()) indexes.add(i);
         }
-        //explosions.removeAll(indexes);
-        for (int i = indexes.size()-1; i >= 0; i--) {
-            explosions.remove(indexes.get(i));
-        }
+        explosions.removeAll(indexes);
+//        for (int i = indexes.size()-1; i >= 0; i--) {
+//            explosions.remove(indexes.get(i));
+//        }
 	}
 
 	private void animateCandles(SpriteBatch spriteBatch, float deltaTime) {
@@ -335,19 +318,12 @@ public class FireballTheGame extends ApplicationAdapter {
 	private void destroyDeadBodies() {
 	    for (Iterator<GameObject> iter = destroyables.iterator(); iter.hasNext();) {
 	        GameObject gameObject = iter.next();
-	        if (gameObject != null) {
+	        if (gameObject != null && gameObject.getBody() != null) {
 	            world.destroyBody(gameObject.getBody());
                 gameObject.getBody().setUserData(null);
                 gameObject.destroyBody();
                 destroyables.remove(gameObject);
             }
         }
-//		for (int i = 0; i < destroyables.size(); i++) {
-//		    GameObject gameObject = destroyables.get(i);
-//		    System.out.println("This is the body: " + gameObject.getBody().getUserData().getClass());
-//			world.destroyBody(gameObject.getBody());
-//			gameObject.getBody().setUserData(null);
-//			gameObject.destroyBody();
-//		}
 	}
 }

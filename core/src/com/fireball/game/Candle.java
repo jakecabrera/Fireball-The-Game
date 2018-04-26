@@ -60,13 +60,14 @@ public class Candle extends GameObject {
             System.out.println(!isLit);
             isLit = !isLit;
         }
+        //isLit = !isLit;
     }
 
     @Override
     public void animate(SpriteBatch spriteBatch, float deltaTime) {
         if (body == null) return;
 
-        if (stateTime - timeLit > 0.5f) timeLit = 0;
+        if (stateTime - timeLit > 0.1f) timeLit = 0;
 
         Vector2 position = body.getPosition();
         x = position.x;

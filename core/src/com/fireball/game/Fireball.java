@@ -51,7 +51,7 @@ public class Fireball extends GameObject {
         vel.y = -vy * SPEED;
         body.setLinearVelocity(vel);
         //body.setTransform(newX, newY, (float)Math.toRadians(rot));
-        body.setTransform(x, y, 0f);
+        body.setTransform(x, y, 90f);
     }
 
     public static void build() {
@@ -71,15 +71,16 @@ public class Fireball extends GameObject {
 
     @Override
     public void animate(SpriteBatch spriteBatch, float deltaTime) {
-        if (body == null) return;
-        if (x > FireballTheGame.WORLD_WIDTH || x > FireballTheGame.WORLD_HEIGHT) {
+        if (body == null || y < 0) {
             exploded = true;
+            return;
         }
 
         Vector2 vel = body.getLinearVelocity();
 
         Vector2 circlePos = ((CircleShape) body.getFixtureList().get(0).getShape()).getPosition();
         Vector2 pos = body.getPosition();
+        float bodyAngle = body.getAngle();
 
         rot = (float) Math.toDegrees(Math.atan2((double)vel.y, (double)vel.x)) - 90;
 
@@ -90,8 +91,10 @@ public class Fireball extends GameObject {
         TextureRegion keyFrame = animation.getKeyFrame(stateTime, true);
         Sprite sprite = new Sprite(keyFrame);
         sprite.setOrigin(circlePos.x, circlePos.y);
+        sprite.setOriginBasedPosition(pos.x + (float) (circlePos.x * Math.cos(bodyAngle)), pos.y + circlePos.y);
         sprite.setRotation(rot);
-        sprite.setBounds(pos.x, pos.y, w, h);
+        sprite.setScale(SCALE);
+        //sprite.setBounds((float)(pos.x - w * Math.cos(bodyAngle)), pos.y, w, h);
         sprite.draw(spriteBatch);
     }
 
