@@ -19,11 +19,19 @@ public class Fireball extends GameObject {
     private static Texture spriteSheet;
     private float stateTime;
     private boolean exploded;
-    private float vx, vy;
+    private float rotation;
+    private float offsetX, offsetY;
+    private float bOffsetX, bOffsetY;
+
+    // test
+    private float r, k;
 
     // Sprite sheet frame rows and cols
     private static final int FRAME_ROWS = 5;
     private static final int FRAME_COLS = 1;
+
+    // how long a fireball lives
+    private static final float LIFESPAN = 5f;
 
     // Scaling
     private final float SCALE = 0.05f;
@@ -32,14 +40,10 @@ public class Fireball extends GameObject {
     public Fireball(World world, PhysicsShapeCache physicsBodies, float x, float y, float vx, float vy) {
         this.x = x;
         this.y = y;
-        this.vx = vx * SPEED;
-        this.vy = vy * SPEED;
+        this.rotation = 0f;
         w = spriteSheet.getWidth() / FRAME_COLS * SCALE;
         h = spriteSheet.getHeight() / FRAME_ROWS * SCALE;
         rot = (float) Math.toDegrees(Math.atan2(-(double)vy, (double)vx));
-
-        float newX = x - ((float) Math.cos(Math.toRadians(rot)));
-        float newY = y - ((float) Math.sin(Math.toRadians(rot)));
 
         exploded = false;
         stateTime = 0f;
@@ -51,7 +55,13 @@ public class Fireball extends GameObject {
         vel.y = -vy * SPEED;
         body.setLinearVelocity(vel);
         //body.setTransform(newX, newY, (float)Math.toRadians(rot));
-        body.setTransform(x, y, 90f);
+        body.setTransform(x, y, 0f);
+
+        Vector2 circlePos = ((CircleShape) body.getFixtureList().get(0).getShape()).getPosition();
+        r = (float)Math.sqrt(Math.pow(circlePos.x, 2) + Math.pow(circlePos.y, 2));
+        k = (float)Math.atan(circlePos.y / circlePos.x);
+        offsetX = circlePos.x;
+        offsetY = circlePos.y;
     }
 
     public static void build() {
@@ -71,39 +81,51 @@ public class Fireball extends GameObject {
 
     @Override
     public void animate(SpriteBatch spriteBatch, float deltaTime) {
-        if (body == null || y < 0) {
+        if (body == null || y < -10 || stateTime > LIFESPAN) {
             exploded = true;
             return;
         }
 
         Vector2 vel = body.getLinearVelocity();
-
-        Vector2 circlePos = ((CircleShape) body.getFixtureList().get(0).getShape()).getPosition();
         Vector2 pos = body.getPosition();
         float bodyAngle = body.getAngle();
 
-        rot = (float) Math.toDegrees(Math.atan2((double)vel.y, (double)vel.x)) - 90;
+        rotation = (float) Math.toDegrees(Math.atan2((double)vel.y, (double)vel.x)) - 90;
 
-        x = pos.y + circlePos.x;
-        y = pos.x + circlePos.y;
+        float oX = pos.x + (float) (r * Math.cos(k + bodyAngle));
+        float oY = pos.y + (float) (r * Math.sin(k + bodyAngle));
+        float ox2 = (float) (r * Math.cos(k + Math.toRadians(rotation)));
+        float oy2 = (float) (r * Math.sin(k + Math.toRadians(rotation)));
+
+        bOffsetX = ox2;
+        bOffsetY = oy2;
+
+        x = oX - ox2 - offsetX;
+        y = oY - oy2 - offsetY;
 
         stateTime += deltaTime;
         TextureRegion keyFrame = animation.getKeyFrame(stateTime, true);
         Sprite sprite = new Sprite(keyFrame);
-        sprite.setOrigin(circlePos.x, circlePos.y);
-        sprite.setOriginBasedPosition(pos.x + (float) (circlePos.x * Math.cos(bodyAngle)), pos.y + circlePos.y);
-        sprite.setRotation(rot);
+        sprite.setOrigin(offsetX, offsetY);
+        sprite.setPosition(x,y);
+        sprite.setRotation(rotation);
         sprite.setScale(SCALE);
-        //sprite.setBounds((float)(pos.x - w * Math.cos(bodyAngle)), pos.y, w, h);
+        System.out.println(sprite.getOriginX());
         sprite.draw(spriteBatch);
-
-        // lol
     }
 
     public Explosion explode(float x, float y) {
         exploded = true;
         Vector2 circlePos = ((CircleShape) body.getFixtureList().get(0).getShape()).getPosition();
         return new Explosion(x, y, rot, circlePos.x, circlePos.y);
+    }
+
+    public Explosion explode() {
+        exploded = true;
+//        Vector2 circlePos = ((CircleShape) body.getFixtureList().get(0).getShape()).getPosition();
+//        return new Explosion(x, y, rot, circlePos.x, circlePos.y);
+//        return new Explosion(x + bOffsetX, y + bOffsetY, 0f, offsetX, offsetY);
+        return new Explosion(body.getPosition().x, body.getPosition().y, 0f, offsetX, offsetY);
     }
 
     public boolean finished() {

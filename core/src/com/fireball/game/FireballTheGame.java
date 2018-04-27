@@ -3,8 +3,11 @@ package com.fireball.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.input.GestureDetector;
@@ -198,7 +201,7 @@ public class FireballTheGame extends ApplicationAdapter {
 		float dt = Gdx.graphics.getDeltaTime();
 
 		spriteBatch.begin();
-//		background.animate(spriteBatch, dt);
+		background.animate(spriteBatch, dt);
 		player.animate(spriteBatch, dt);
 		animateCandles(spriteBatch, dt);
 		animateFireballs(spriteBatch, dt);
@@ -207,10 +210,12 @@ public class FireballTheGame extends ApplicationAdapter {
 
 		// Debug stuff
 //		shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-//		shapeRenderer.setColor(Color.RED);
-//		shapeRenderer.rect(0, 0.1f, WORLD_WIDTH, WORLD_HEIGHT - 0.1f);
+//		shapeRenderer.setColor(Color.GREEN);
+//		shapeRenderer.circle(5,5,1);
+//		shapeRenderer.setColor(Color.BLUE);
+//		shapeRenderer.circle(5+3.7389f, 5+4.8501f, 1);
 //		shapeRenderer.end();
-		debugRenderer.render(world, camera.combined);
+//		debugRenderer.render(world, camera.combined);
 	}
 	
 	@Override
@@ -282,6 +287,9 @@ public class FireballTheGame extends ApplicationAdapter {
 		List<Integer> indexes = new ArrayList<Integer>();
 		for (int i = 0; i < fireballs.size(); i++) {
 			if (fireballs.get(i).finished()) {
+				if (fireballs.get(i).getBody() != null) {
+					explosions.add(fireballs.get(i).explode());
+				}
 				indexes.add(i);
 				if (!destroyables.contains(fireballs.get(i))) destroyables.add(fireballs.get(i));
 			}
@@ -296,7 +304,7 @@ public class FireballTheGame extends ApplicationAdapter {
 
 	private void animateExplosions(SpriteBatch spriteBatch, float deltaTime) {
 		for (Explosion explosion: explosions) {
-			explosion.animate(spriteBatch, deltaTime, shapeRenderer);
+			explosion.animate(spriteBatch, deltaTime);
 		}
 
 		List<Integer> indexes = new ArrayList<Integer>();

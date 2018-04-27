@@ -29,6 +29,15 @@ public class Explosion extends GameObject {
         stateTime = 0f;
     }
 
+    public Explosion(float x, float y) {
+        this.x = x;
+        this.y = y;
+        this.rot = 0f;
+        offsetX = 0f;
+        offsetY = 0f;
+        stateTime = 0f;
+    }
+
     public static void build() {
         spriteSheet = new Texture("explosion.png");
         TextureRegion[][] tmp = TextureRegion.split(spriteSheet,
@@ -59,29 +68,10 @@ public class Explosion extends GameObject {
         sprite.setScale(SCALE);
         //sprite.setRotation(rot);
         sprite.setPosition(x, y);
-        sprite.setOrigin(0f, 0f);
+//        sprite.setOriginBasedPosition(x,y);
+        sprite.setOrigin(-offsetX,-offsetY);
+//        sprite.setOrigin(offsetX, offsetY);
         sprite.draw(spriteBatch);
-    }
-
-    public void animate(SpriteBatch spriteBatch, float deltaTime, ShapeRenderer shapeRenderer) {
-        stateTime += deltaTime;
-
-        if (animation.isAnimationFinished(stateTime)) {
-            return;
-        }
-
-        TextureRegion keyFrame = animation.getKeyFrame(stateTime, false);
-        Sprite sprite = new Sprite(keyFrame);
-        sprite.setScale(SCALE);
-        //sprite.setRotation(rot);
-        sprite.setPosition(x - offsetX, y - offsetY - 1);
-        sprite.setOrigin(0f, 0f);
-        sprite.draw(spriteBatch);
-
-//        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-//        shapeRenderer.setColor(Color.RED);
-//        shapeRenderer.circle(x, y, 2);
-//        shapeRenderer.end();
     }
 
     public boolean finished() {
