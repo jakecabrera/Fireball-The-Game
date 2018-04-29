@@ -20,14 +20,15 @@ public class Candle extends GameObject {
     private static final int FRAME_ROWS = 5;
     private static final int FRAME_COLS = 1;
 
-    public Candle(World world, PhysicsShapeCache physicsBodies, float x, float y) {
+    Candle(World world, PhysicsShapeCache physicsBodies, float x, float y) {
         this.x = x;
         this.y = y;
         w = litCandleSheet.getWidth() / FRAME_COLS;
         h = litCandleSheet.getHeight() / FRAME_ROWS;
         stateTime = 0f;
 
-        body = physicsBodies.createBody("unlitCandle", world, SCALE, SCALE);
+//        body = physicsBodies.createBody("unlitCandle", world, SCALE, SCALE);
+        body = physicsBodies.createBody("candle", world, SCALE, SCALE);
         body.setUserData(this);
         body.setTransform(x, y, 0);
     }

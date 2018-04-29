@@ -3,6 +3,7 @@ package com.fireball.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -16,6 +17,7 @@ import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
+import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
@@ -25,7 +27,6 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.codeandweb.physicseditor.PhysicsShapeCache;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class FireballTheGame extends ApplicationAdapter {
@@ -143,11 +144,15 @@ public class FireballTheGame extends ApplicationAdapter {
 		world.setContactListener(new ContactListener() {
 			@Override
 			public void beginContact(Contact contact) {
-				Object a = contact.getFixtureA().getBody().getUserData();
-				Object b = contact.getFixtureB().getBody().getUserData();
+				Fixture fixA = contact.getFixtureA();
+				Fixture fixB = contact.getFixtureB();
+
+				Object a = fixA.getBody().getUserData();
+				Object b = fixB.getBody().getUserData();
 
 				Fireball fireball = null;
 				Candle candle = null;
+				boolean hitSensor = fixA.isSensor() || fixB.isSensor();
 
 				if (a.getClass() == Fireball.class) {
 					fireball = (Fireball) a;
@@ -163,9 +168,11 @@ public class FireballTheGame extends ApplicationAdapter {
 
 				if (fireball != null && !fireball.finished() && candle != null) {
 					candle.ignite();
-					gameObjects.remove(fireball);
-					if (!destroyables.contains(fireball)) destroyables.add(fireball);
-					gameObjects.add(fireball.explode());
+					if (!hitSensor) {
+						gameObjects.remove(fireball);
+						if (!destroyables.contains(fireball)) destroyables.add(fireball);
+						gameObjects.add(fireball.explode());
+					}
 				}
 			}
 
@@ -197,9 +204,15 @@ public class FireballTheGame extends ApplicationAdapter {
 		// remove anything that doesn't need to be in the world anymore
 		cleanup(gameObjects);
 
+		// background
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+		shapeRenderer.setColor(Color.GRAY);
+		shapeRenderer.rect(0,0,WORLD_WIDTH, WORLD_HEIGHT);
+		shapeRenderer.end();
+
 		// draw and animate all things in the game
 		spriteBatch.begin();
-		background.animate(spriteBatch, dt);
+//		background.animate(spriteBatch, dt);
 		player.animate(spriteBatch, dt);
 		animate(gameObjects, dt);
 		spriteBatch.end();
@@ -308,15 +321,25 @@ public class FireballTheGame extends ApplicationAdapter {
 	 * Destroy all the bodies of the finished gameObjects in the world
 	 */
 	private void destroyDeadBodies() {
-	    for (Iterator<GameObject> iter = destroyables.iterator(); iter.hasNext();) {
-	        GameObject gameObject = iter.next();
-	        if (gameObject != null && gameObject.hasBody()) {
+	    List<GameObject> toRemove = new ArrayList<GameObject>();
+        for (GameObject gameObject: destroyables) {
+            if (gameObject != null && gameObject.hasBody()) {
                 Body body = gameObject.getBody();
-	            world.destroyBody(body);
+                world.destroyBody(body);
                 body.setUserData(null);
                 gameObject.destroyBody();
             }
-			destroyables.remove(gameObject);
         }
+//	    for (Iterator<GameObject> iter = destroyables.iterator(); iter.hasNext();) {
+//	        GameObject gameObject = iter.next();
+//	        if (gameObject != null && gameObject.hasBody()) {
+//                Body body = gameObject.getBody();
+//	            world.destroyBody(body);
+//                body.setUserData(null);
+//                gameObject.destroyBody();
+//            }
+//			destroyables.remove(gameObject);
+//        }
+        destroyables.removeAll(toRemove);
 	}
 }
