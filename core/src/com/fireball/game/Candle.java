@@ -12,17 +12,13 @@ public class Candle extends GameObject {
     private static Texture unlitCandle;
     private static Texture litCandleSheet;
     private static Animation<TextureRegion> litCandleAnimation;
-    private float stateTime = 0;
+    private float stateTime;
     private boolean isLit = false;
     private float timeLit = 0f;
-    private float timeSinceStateChange = 0f;
 
     // Sprite sheet frame rows and cols
     private static final int FRAME_ROWS = 5;
     private static final int FRAME_COLS = 1;
-
-    // Scaling
-    //private final float SCALE = 0.05f;
 
     public Candle(World world, PhysicsShapeCache physicsBodies, float x, float y) {
         this.x = x;
@@ -31,8 +27,6 @@ public class Candle extends GameObject {
         h = litCandleSheet.getHeight() / FRAME_ROWS;
         stateTime = 0f;
 
-        //BodyDef bodyDef = new BodyDef();
-        //bodyDef.type = BodyDef.BodyType.StaticBody;
         body = physicsBodies.createBody("unlitCandle", world, SCALE, SCALE);
         body.setUserData(this);
         body.setTransform(x, y, 0);
@@ -41,26 +35,14 @@ public class Candle extends GameObject {
     public static void build() {
         unlitCandle = new Texture("unlitCandle.png");
         litCandleSheet = new Texture("litCandle.png");
-
-        TextureRegion[][] tmp = TextureRegion.split(litCandleSheet,
-                litCandleSheet.getWidth() / FRAME_COLS,
-                litCandleSheet.getHeight() / FRAME_ROWS);
-        TextureRegion[] litCandleFrames = new TextureRegion[FRAME_COLS * FRAME_ROWS];
-        int index = 0;
-        for (int i = 0; i < FRAME_ROWS; i++) {
-            litCandleFrames[index++] = tmp[i][0];
-        }
-
-        litCandleAnimation = new Animation<TextureRegion>(0.083f, litCandleFrames);
+        litCandleAnimation = AnimationBuilder.build(litCandleSheet, FRAME_ROWS, FRAME_COLS, .083f);
     }
 
     public void ignite() {
         if (timeLit == 0) {
             timeLit = stateTime;
-            System.out.println(!isLit);
             isLit = !isLit;
         }
-        //isLit = !isLit;
     }
 
     @Override

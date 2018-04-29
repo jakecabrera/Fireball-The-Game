@@ -18,4 +18,10 @@ public abstract class GameObject implements Animatable {
     public void destroyBody() {
         body = null;
     }
+
+    public boolean finished() {return false;}
+
+    public GameObject clean() {
+        return null;
+    }
 }

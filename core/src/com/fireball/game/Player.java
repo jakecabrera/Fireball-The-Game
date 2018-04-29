@@ -33,39 +33,8 @@ public class Player extends GameObject {
     public static void build() {
         idleSheet = new Texture("stickzard.png");
         spellSheet = new Texture("stickzardThrowFireball.png");
-
-        TextureRegion[][] tmpIdle = TextureRegion.split(idleSheet,
-                idleSheet.getWidth() / IDLE_FRAME_COLS,
-                idleSheet.getHeight() / IDLE_FRAME_ROWS);
-        TextureRegion[][] tmpSpell = TextureRegion.split(spellSheet,
-                spellSheet.getWidth() / SPELL_FRAME_COLS,
-                spellSheet.getHeight() / SPELL_FRAME_ROWS);
-
-        TextureRegion[] idleFrames = new TextureRegion[IDLE_FRAME_COLS * IDLE_FRAME_ROWS];
-        TextureRegion[] spellFrames = new TextureRegion[SPELL_FRAME_COLS * SPELL_FRAME_ROWS];
-
-        int index = 0;
-        for (int row = 0; row < IDLE_FRAME_ROWS; row++) {
-            for (int col = 0; col < IDLE_FRAME_COLS; col++) {
-                idleFrames[index++] = tmpIdle[row][col];
-            }
-        }
-
-        index = 0;
-        for (int row = 0; row < SPELL_FRAME_ROWS; row++) {
-            for (int col = 0; col < SPELL_FRAME_COLS; col++) {
-                spellFrames[index++] = tmpSpell[row][col];
-            }
-        }
-
-        idleAnimation = new Animation<TextureRegion>(0.333f, idleFrames);
-        spellAnimation = new Animation<TextureRegion>(0.1f, spellFrames);
-    }
-
-    public void castSpell() {
-        isCasting = true;
-        stateTime = 0f;
-        //return new Fireball();
+        idleAnimation = AnimationBuilder.build(idleSheet, IDLE_FRAME_ROWS, IDLE_FRAME_COLS, 0.333f);
+        spellAnimation = AnimationBuilder.build(spellSheet, SPELL_FRAME_ROWS, SPELL_FRAME_COLS, .1f);
     }
 
     public Fireball castSpell(float vx, float vy, World world, PhysicsShapeCache physicsBodies) {

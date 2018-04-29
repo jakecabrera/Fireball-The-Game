@@ -29,19 +29,7 @@ public class Explosion extends GameObject {
 
     public static void build() {
         spriteSheet = new Texture("explosion.png");
-        TextureRegion[][] tmp = TextureRegion.split(spriteSheet,
-                spriteSheet.getWidth() / FRAME_COLS,
-                spriteSheet.getHeight() / FRAME_ROWS);
-        TextureRegion[] spriteFrames = new TextureRegion[FRAME_ROWS * FRAME_COLS];
-
-        int index = 0;
-        for (int row = 0; row < FRAME_ROWS; row++) {
-            for (int col = 0; col < FRAME_COLS; col++) {
-                spriteFrames[index++] = tmp[row][col];
-            }
-        }
-
-        animation = new Animation<TextureRegion>(0.067f, spriteFrames);
+        animation = AnimationBuilder.build(spriteSheet, FRAME_ROWS, FRAME_COLS, 0.067f);
     }
 
     @Override
@@ -61,7 +49,12 @@ public class Explosion extends GameObject {
         sprite.draw(spriteBatch);
     }
 
+    @Override
     public boolean finished() {
         return animation.isAnimationFinished(stateTime);
+    }
+
+    public static void dispose() {
+        spriteSheet.dispose();
     }
 }

@@ -15,26 +15,19 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.codeandweb.physicseditor.PhysicsShapeCache;
 
 public class Fireball extends GameObject {
+    private static final float LIFESPAN = 5f;
     private static Animation<TextureRegion> animation;
     private static Texture spriteSheet;
+
+    private final float SPEED = 0.02f;
     private float stateTime;
     private boolean exploded;
-//    private float rotation;
     private float offsetX, offsetY;
-    private float bOffsetX, bOffsetY;
-
-    // test
     private float r, k;
 
     // Sprite sheet frame rows and cols
     private static final int FRAME_ROWS = 5;
     private static final int FRAME_COLS = 1;
-
-    // how long a fireball lives
-    private static final float LIFESPAN = 5f;
-
-    // relative speed of a fireball
-    private final float SPEED = 0.02f;
 
     public Fireball(World world, PhysicsShapeCache physicsBodies, float x, float y, float vx, float vy) {
         this.x = x;
@@ -43,19 +36,19 @@ public class Fireball extends GameObject {
         w = spriteSheet.getWidth() / FRAME_COLS * SCALE;
         h = spriteSheet.getHeight() / FRAME_ROWS * SCALE;
         rotation = (float) Math.toDegrees(Math.atan2(-(double)vy, (double)vx));
-
         exploded = false;
         stateTime = 0f;
 
+        // Create physics body
         body = physicsBodies.createBody("fireballNoAnim", world, SCALE, SCALE);
         body.setUserData(this);
         Vector2 vel = body.getLinearVelocity();
         vel.x = vx * SPEED;
         vel.y = -vy * SPEED;
         body.setLinearVelocity(vel);
-        //body.setTransform(newX, newY, (float)Math.toRadians(rot));
         body.setTransform(x, y, 0f);
 
+        // Get constants for the object
         Vector2 circlePos = ((CircleShape) body.getFixtureList().get(0).getShape()).getPosition();
         r = (float)Math.sqrt(Math.pow(circlePos.x, 2) + Math.pow(circlePos.y, 2));
         k = (float)Math.atan(circlePos.y / circlePos.x);
@@ -65,17 +58,7 @@ public class Fireball extends GameObject {
 
     public static void build() {
         spriteSheet = new Texture("fireball.png");
-        TextureRegion[][] tmp = TextureRegion.split(spriteSheet,
-                spriteSheet.getWidth() / FRAME_COLS,
-                spriteSheet.getHeight() / FRAME_ROWS);
-        TextureRegion[] fireballFrames = new TextureRegion[FRAME_ROWS * FRAME_COLS];
-
-        int index = 0;
-        for (int i = 0; i < FRAME_ROWS; i++) {
-            fireballFrames[index++] = tmp[i][0];
-        }
-
-        animation = new Animation<TextureRegion>(0.083f, fireballFrames);
+        animation = AnimationBuilder.build(spriteSheet, FRAME_ROWS, FRAME_COLS, 0.083f);
     }
 
     @Override
@@ -89,33 +72,26 @@ public class Fireball extends GameObject {
         Vector2 pos = body.getPosition();
         float bodyAngle = body.getAngle();
 
+        // Some math to figure out where to place the sprite relative to it's physical
+        // body and rotation with regard to it's velocity
         rotation = (float) Math.toDegrees(Math.atan2((double)vel.y, (double)vel.x)) - 90;
+        float bodyRelPosX = pos.x + (float) (r * Math.cos(k + bodyAngle));
+        float bodyRelPosY = pos.y + (float) (r * Math.sin(k + bodyAngle));
+        float textureOffsetX = (float) (r * Math.cos(k + Math.toRadians(rotation)));
+        float textureOffsetY = (float) (r * Math.sin(k + Math.toRadians(rotation)));
 
-        float oX = pos.x + (float) (r * Math.cos(k + bodyAngle));
-        float oY = pos.y + (float) (r * Math.sin(k + bodyAngle));
-        float ox2 = (float) (r * Math.cos(k + Math.toRadians(rotation)));
-        float oy2 = (float) (r * Math.sin(k + Math.toRadians(rotation)));
+        x = bodyRelPosX - textureOffsetX - offsetX;
+        y = bodyRelPosY - textureOffsetY - offsetY;
 
-        bOffsetX = ox2;
-        bOffsetY = oy2;
-
-        x = oX - ox2 - offsetX;
-        y = oY - oy2 - offsetY;
-
+        // Set up the sprite and draw it
         stateTime += deltaTime;
         TextureRegion keyFrame = animation.getKeyFrame(stateTime, true);
         Sprite sprite = new Sprite(keyFrame);
         sprite.setOrigin(offsetX, offsetY);
-        sprite.setPosition(x,y);
         sprite.setRotation(rotation);
         sprite.setScale(SCALE);
-        System.out.println(sprite.getOriginX());
+        sprite.setPosition(x,y);
         sprite.draw(spriteBatch);
-    }
-
-    public Explosion explode(float x, float y) {
-        exploded = true;
-        return new Explosion(x, y, rotation, offsetX, offsetY);
     }
 
     public Explosion explode() {
@@ -123,11 +99,23 @@ public class Fireball extends GameObject {
         return new Explosion(x, y, rotation, offsetX, offsetY);
     }
 
+    @Override
     public boolean finished() {
         return exploded;
     }
 
     public static void dispose() {
         spriteSheet.dispose();
+    }
+
+    @Override
+    public GameObject clean() {
+        super.clean();
+
+        if (body != null) {
+            return explode();
+        }
+
+        return null;
     }
 }
