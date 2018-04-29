@@ -19,7 +19,7 @@ public class Fireball extends GameObject {
     private static Texture spriteSheet;
     private float stateTime;
     private boolean exploded;
-    private float rotation;
+//    private float rotation;
     private float offsetX, offsetY;
     private float bOffsetX, bOffsetY;
 
@@ -33,8 +33,7 @@ public class Fireball extends GameObject {
     // how long a fireball lives
     private static final float LIFESPAN = 5f;
 
-    // Scaling
-    private final float SCALE = 0.05f;
+    // relative speed of a fireball
     private final float SPEED = 0.02f;
 
     public Fireball(World world, PhysicsShapeCache physicsBodies, float x, float y, float vx, float vy) {
@@ -43,7 +42,7 @@ public class Fireball extends GameObject {
         this.rotation = 0f;
         w = spriteSheet.getWidth() / FRAME_COLS * SCALE;
         h = spriteSheet.getHeight() / FRAME_ROWS * SCALE;
-        rot = (float) Math.toDegrees(Math.atan2(-(double)vy, (double)vx));
+        rotation = (float) Math.toDegrees(Math.atan2(-(double)vy, (double)vx));
 
         exploded = false;
         stateTime = 0f;
@@ -116,16 +115,12 @@ public class Fireball extends GameObject {
 
     public Explosion explode(float x, float y) {
         exploded = true;
-        Vector2 circlePos = ((CircleShape) body.getFixtureList().get(0).getShape()).getPosition();
-        return new Explosion(x, y, rot, circlePos.x, circlePos.y);
+        return new Explosion(x, y, rotation, offsetX, offsetY);
     }
 
     public Explosion explode() {
         exploded = true;
-//        Vector2 circlePos = ((CircleShape) body.getFixtureList().get(0).getShape()).getPosition();
-//        return new Explosion(x, y, rot, circlePos.x, circlePos.y);
-//        return new Explosion(x + bOffsetX, y + bOffsetY, 0f, offsetX, offsetY);
-        return new Explosion(body.getPosition().x, body.getPosition().y, 0f, offsetX, offsetY);
+        return new Explosion(x, y, rotation, offsetX, offsetY);
     }
 
     public boolean finished() {

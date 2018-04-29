@@ -4,6 +4,8 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.physics.box2d.World;
+import com.codeandweb.physicseditor.PhysicsShapeCache;
 
 public class Player extends GameObject {
     private static Animation<TextureRegion> idleAnimation;
@@ -18,9 +20,6 @@ public class Player extends GameObject {
     private static final int IDLE_FRAME_COLS = 2;
     private static final int SPELL_FRAME_ROWS = 7;
     private static final int SPELL_FRAME_COLS = 1;
-
-    // Scaling
-    private final float SCALE = 0.05f;
 
     public Player() {
         x = -2;
@@ -67,6 +66,12 @@ public class Player extends GameObject {
         isCasting = true;
         stateTime = 0f;
         //return new Fireball();
+    }
+
+    public Fireball castSpell(float vx, float vy, World world, PhysicsShapeCache physicsBodies) {
+        isCasting = true;
+        stateTime = 0f;
+        return new Fireball(world, physicsBodies, 7, 5, vx, vy);
     }
 
     @Override

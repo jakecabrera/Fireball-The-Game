@@ -32,29 +32,31 @@ import java.util.Iterator;
 import java.util.List;
 
 public class FireballTheGame extends ApplicationAdapter {
-	ArrayList<Fireball> fireballs;
-	ArrayList<Explosion> explosions;
-	ArrayList<Candle> candles;
-	ArrayList<GameObject> destroyables;
-	Player player;
-	Background background;
+    // Game object arrays
+	private ArrayList<Fireball> fireballs;
+	private ArrayList<Explosion> explosions;
+	private ArrayList<Candle> candles;
+	private ArrayList<GameObject> destroyables;
 
-	Viewport viewport;
-	Camera camera;
+	// Main player
+	private Player player;
 
-	SpriteBatch spriteBatch;
-	ShapeRenderer shapeRenderer;
+	// Display
+	private Background background;
+	private Viewport viewport;
+	private Camera camera;
+	private SpriteBatch spriteBatch;
+	private ShapeRenderer shapeRenderer;
 
 	// Box2D world stuff
-	World world;
-	static final float STEP_TIME = 1f / 60f;
-	static final int VELOCITY_ITERATIONS = 6;
-	static final int POSITION_ITERATIONS = 2;
-	float accumulator = 0;
-	PhysicsShapeCache physicsBodies;
-	Box2DDebugRenderer debugRenderer;
-	final float SCALE = 0.05f;
-	Body ground;
+	private World world;
+	private static final float STEP_TIME = 1f / 60f;
+	private static final int VELOCITY_ITERATIONS = 6;
+	private static final int POSITION_ITERATIONS = 2;
+	private float accumulator = 0;
+	private PhysicsShapeCache physicsBodies;
+	private Box2DDebugRenderer debugRenderer;
+	private Body ground;
 
 	// Screen constants
     static final float WORLD_HEIGHT = 32;
@@ -110,8 +112,7 @@ public class FireballTheGame extends ApplicationAdapter {
             @Override
             public boolean fling(float velocityX, float velocityY, int button) {
                 if (velocityX > 0) {
-					player.castSpell();
-					fireballs.add(new Fireball(world, physicsBodies, 7, 5, velocityX, velocityY));
+					fireballs.add(player.castSpell(velocityX, velocityY, world, physicsBodies));
 				}
                 return false;
             }
@@ -151,17 +152,13 @@ public class FireballTheGame extends ApplicationAdapter {
 				Candle candle = null;
 
 				if (a.getUserData().getClass() == Fireball.class) {
-//					System.out.println("A is Fireball");
 					fireball = (Fireball) a.getUserData();
 					if (b.getUserData().getClass() == Candle.class) {
-//						System.out.println("B is Candle");
 						candle = (Candle) b.getUserData();
 					}
 				} else if (b.getUserData().getClass() == Fireball.class) {
-//					System.out.println("B is Fireball");
 					fireball = (Fireball) b.getUserData();
 					if (a.getUserData().getClass() == Candle.class) {
-//						System.out.println("A is Candle");
 						candle = (Candle) a.getUserData();
 					}
 				}
@@ -171,7 +168,7 @@ public class FireballTheGame extends ApplicationAdapter {
 					fireballs.remove(fireball);
 					if (!destroyables.contains(fireball)) destroyables.add(fireball);
 					Vector2[] contacts = contact.getWorldManifold().getPoints();
-					explosions.add(fireball.explode(contacts[0].x, contacts[0].y));
+					explosions.add(fireball.explode());
 				}
 			}
 
@@ -239,12 +236,6 @@ public class FireballTheGame extends ApplicationAdapter {
 		createGround();
 	}
 
-	private Body createBody(String name, float x, float y, float rotation) {
-		Body body = physicsBodies.createBody(name, world, SCALE, SCALE);
-		body.setTransform(x, y, rotation);
-		return body;
-	}
-
 	private void createGround() {
 		if (ground != null) world.destroyBody(ground);
 
@@ -279,6 +270,10 @@ public class FireballTheGame extends ApplicationAdapter {
 		}
 	}
 
+	private void animateObjects(SpriteBatch spriteBatch, float deltaTime, ArrayList<Animatable> animatables) {
+		for (Animatable animatable: animatables) animatable.animate(spriteBatch, deltaTime);
+	}
+
 	private void animateFireballs(SpriteBatch spriteBatch, float deltaTime) {
 		for (Fireball fireball: fireballs) {
 			fireball.animate(spriteBatch, deltaTime);
@@ -295,9 +290,6 @@ public class FireballTheGame extends ApplicationAdapter {
 			}
 		}
 		fireballs.removeAll(indexes);
-//		for (int i = indexes.size()-1; i >= 0; i--) {
-//		    fireballs.remove(indexes.get(i));
-//        }
 	}
 
 
@@ -312,10 +304,12 @@ public class FireballTheGame extends ApplicationAdapter {
 		    if (explosions.get(i).finished()) indexes.add(i);
         }
         explosions.removeAll(indexes);
-//        for (int i = indexes.size()-1; i >= 0; i--) {
-//            explosions.remove(indexes.get(i));
-//        }
 	}
+
+	private void cleanupGameObjects(ArrayList<GameObject> gameObjects) {
+	    List<Integer> indexes = new ArrayList<Integer>();
+
+    }
 
 	private void animateCandles(SpriteBatch spriteBatch, float deltaTime) {
 		for (Candle candle: candles) {
@@ -326,9 +320,10 @@ public class FireballTheGame extends ApplicationAdapter {
 	private void destroyDeadBodies() {
 	    for (Iterator<GameObject> iter = destroyables.iterator(); iter.hasNext();) {
 	        GameObject gameObject = iter.next();
-	        if (gameObject != null && gameObject.getBody() != null) {
-	            world.destroyBody(gameObject.getBody());
-                gameObject.getBody().setUserData(null);
+	        if (gameObject != null && gameObject.hasBody()) {
+                Body body = gameObject.getBody();
+	            world.destroyBody(body);
+                body.setUserData(null);
                 gameObject.destroyBody();
                 destroyables.remove(gameObject);
             }

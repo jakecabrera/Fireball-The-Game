@@ -18,23 +18,12 @@ public class Explosion extends GameObject {
     private static final int FRAME_COLS = 2;
     private static final int FRAME_ROWS = 3;
 
-    private static final float SCALE = 0.05f;
-
     public Explosion(float x, float y, float rot, float offX, float offY) {
         this.x = x;
         this.y = y;
-        this.rot = rot;
+        rotation = rot;
         offsetX = offX;
         offsetY = offY;
-        stateTime = 0f;
-    }
-
-    public Explosion(float x, float y) {
-        this.x = x;
-        this.y = y;
-        this.rot = 0f;
-        offsetX = 0f;
-        offsetY = 0f;
         stateTime = 0f;
     }
 
@@ -66,11 +55,9 @@ public class Explosion extends GameObject {
         TextureRegion keyFrame = animation.getKeyFrame(stateTime, false);
         Sprite sprite = new Sprite(keyFrame);
         sprite.setScale(SCALE);
-        //sprite.setRotation(rot);
+        sprite.setRotation(rotation);
         sprite.setPosition(x, y);
-//        sprite.setOriginBasedPosition(x,y);
-        sprite.setOrigin(-offsetX,-offsetY);
-//        sprite.setOrigin(offsetX, offsetY);
+        sprite.setOrigin(offsetX,offsetY);
         sprite.draw(spriteBatch);
     }
 

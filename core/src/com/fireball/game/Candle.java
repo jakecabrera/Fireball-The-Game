@@ -22,7 +22,7 @@ public class Candle extends GameObject {
     private static final int FRAME_COLS = 1;
 
     // Scaling
-    private final float SCALE = 0.05f;
+    //private final float SCALE = 0.05f;
 
     public Candle(World world, PhysicsShapeCache physicsBodies, float x, float y) {
         this.x = x;
