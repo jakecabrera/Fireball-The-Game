@@ -330,16 +330,6 @@ public class FireballTheGame extends ApplicationAdapter {
                 gameObject.destroyBody();
             }
         }
-//	    for (Iterator<GameObject> iter = destroyables.iterator(); iter.hasNext();) {
-//	        GameObject gameObject = iter.next();
-//	        if (gameObject != null && gameObject.hasBody()) {
-//                Body body = gameObject.getBody();
-//	            world.destroyBody(body);
-//                body.setUserData(null);
-//                gameObject.destroyBody();
-//            }
-//			destroyables.remove(gameObject);
-//        }
         destroyables.removeAll(toRemove);
 	}
 }
