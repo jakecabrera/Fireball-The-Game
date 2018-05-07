@@ -37,6 +37,9 @@ public class FireballTheGame extends ApplicationAdapter {
 	// Main player
 	private Player player;
 
+	// GUI
+	GUImaster guiMaster;
+
 	// Display
 	private Background background;
 	private Viewport viewport;
@@ -71,12 +74,14 @@ public class FireballTheGame extends ApplicationAdapter {
 		Player.build();
 		Explosion.build();
 		Background.build();
+		GUImaster.build();
 
 		// Initialize game objects
 		background = new Background();
 		player = new Player();
 		destroyables = new ArrayList<GameObject>();
 		gameObjects = new ArrayList<GameObject>();
+		guiMaster = new GUImaster();
 
 		// Create some candles
 		gameObjects.add(new Candle(world, physicsBodies, 40, 0f));
@@ -212,9 +217,10 @@ public class FireballTheGame extends ApplicationAdapter {
 
 		// draw and animate all things in the game
 		spriteBatch.begin();
-//		background.animate(spriteBatch, dt);
-		player.animate(spriteBatch, dt);
+//		background.draw(spriteBatch, dt);
+		player.draw(spriteBatch, dt);
 		animate(gameObjects, dt);
+		guiMaster.draw(spriteBatch, dt);
 		spriteBatch.end();
 
 		// Debug stuff
@@ -234,6 +240,7 @@ public class FireballTheGame extends ApplicationAdapter {
 		Explosion.dispose();
 		Background.dispose();
 		world.dispose();
+		GUImaster.dispose();
 		debugRenderer.dispose();
 	}
 
@@ -294,7 +301,7 @@ public class FireballTheGame extends ApplicationAdapter {
 	 * @param deltaTime as time that has passed since last call
 	 */
 	private void animate(List<? extends Animatable> animatables, float deltaTime) {
-		for (Animatable animatable: animatables) animatable.animate(spriteBatch, deltaTime);
+		for (Animatable animatable: animatables) animatable.draw(spriteBatch, deltaTime);
 	}
 
 	/**

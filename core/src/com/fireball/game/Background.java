@@ -31,7 +31,7 @@ public class Background implements Animatable{
     }
 
     @Override
-    public void animate(SpriteBatch spriteBatch, float deltaTime) {
+    public void draw(SpriteBatch spriteBatch, float deltaTime) {
         stateTime += deltaTime;
         background.setBounds(0, 0, FireballTheGame.WORLD_WIDTH, FireballTheGame.WORLD_HEIGHT);
         forest.setBounds(0, 0, FireballTheGame.WORLD_WIDTH, FireballTheGame.WORLD_HEIGHT);

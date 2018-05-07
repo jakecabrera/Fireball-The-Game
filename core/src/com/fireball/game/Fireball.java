@@ -62,7 +62,7 @@ public class Fireball extends GameObject {
     }
 
     @Override
-    public void animate(SpriteBatch spriteBatch, float deltaTime) {
+    public void draw(SpriteBatch spriteBatch, float deltaTime) {
         if (body == null || y < -10 || stateTime > LIFESPAN) {
             exploded = true;
             return;

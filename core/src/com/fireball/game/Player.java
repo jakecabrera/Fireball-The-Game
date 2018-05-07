@@ -44,7 +44,7 @@ public class Player extends GameObject {
     }
 
     @Override
-    public void animate(SpriteBatch spriteBatch, float deltaTime) {
+    public void draw(SpriteBatch spriteBatch, float deltaTime) {
         stateTime += deltaTime;
 
         // updates

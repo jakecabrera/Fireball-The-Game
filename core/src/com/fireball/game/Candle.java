@@ -47,7 +47,7 @@ public class Candle extends GameObject {
     }
 
     @Override
-    public void animate(SpriteBatch spriteBatch, float deltaTime) {
+    public void draw(SpriteBatch spriteBatch, float deltaTime) {
         if (body == null) return;
 
         if (stateTime - timeLit > 0.1f) timeLit = 0;

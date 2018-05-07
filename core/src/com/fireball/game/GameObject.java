@@ -1,8 +1,10 @@
 package com.fireball.game;
 
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 
 public abstract class GameObject implements Animatable {
+    protected Vector2 position;
     protected float x, y;
     protected float w, h;
     protected float rotation;
