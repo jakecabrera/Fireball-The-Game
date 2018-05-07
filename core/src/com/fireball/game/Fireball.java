@@ -24,6 +24,7 @@ public class Fireball extends GameObject {
     private boolean exploded;
     private float offsetX, offsetY;
     private float r, k;
+    private Score score;
 
     // Sprite sheet frame rows and cols
     private static final int FRAME_ROWS = 5;
@@ -38,6 +39,7 @@ public class Fireball extends GameObject {
         rotation = (float) Math.toDegrees(Math.atan2(-(double)vy, (double)vx));
         exploded = false;
         stateTime = 0f;
+        score = new Score();
 
         // Create physics body
         body = physicsBodies.createBody("fireballNoAnim", world, SCALE, SCALE);
@@ -63,7 +65,7 @@ public class Fireball extends GameObject {
 
     @Override
     public void draw(SpriteBatch spriteBatch, float deltaTime) {
-        if (body == null || y < -10 || stateTime > LIFESPAN) {
+        if (body == null || stateTime > LIFESPAN || y < -10) {
             exploded = true;
             return;
         }
@@ -117,5 +119,13 @@ public class Fireball extends GameObject {
         }
 
         return null;
+    }
+
+    public Score getScore() {
+        return score.clearScore();
+    }
+
+    public void successfulHit() {
+        score.addScore();
     }
 }

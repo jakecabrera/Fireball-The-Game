@@ -39,6 +39,7 @@ public class FireballTheGame extends ApplicationAdapter {
 
 	// GUI
 	GUImaster guiMaster;
+	Stats stats;
 
 	// Display
 	private Background background;
@@ -81,7 +82,8 @@ public class FireballTheGame extends ApplicationAdapter {
 		player = new Player();
 		destroyables = new ArrayList<GameObject>();
 		gameObjects = new ArrayList<GameObject>();
-		guiMaster = new GUImaster();
+		stats = new Stats();
+		guiMaster = new GUImaster(stats);
 
 		// Create some candles
 		gameObjects.add(new Candle(world, physicsBodies, 40, 0f));
@@ -114,6 +116,7 @@ public class FireballTheGame extends ApplicationAdapter {
             @Override
             public boolean fling(float velocityX, float velocityY, int button) {
                 if (velocityX > 0) {
+                	stats.startTimer();
 					gameObjects.add(player.castSpell(velocityX, velocityY, world, physicsBodies));
 				}
                 return false;
@@ -172,9 +175,10 @@ public class FireballTheGame extends ApplicationAdapter {
 				}
 
 				if (fireball != null && !fireball.finished() && candle != null) {
+					fireball.successfulHit();
 					candle.ignite();
 					if (!hitSensor) {
-						gameObjects.remove(fireball);
+//						gameObjects.remove(fireball);
 						if (!destroyables.contains(fireball)) destroyables.add(fireball);
 						gameObjects.add(fireball.explode());
 					}
@@ -209,6 +213,9 @@ public class FireballTheGame extends ApplicationAdapter {
 		// remove anything that doesn't need to be in the world anymore
 		cleanup(gameObjects);
 
+		// update game time
+		stats.update(dt);
+
 		// background
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 		shapeRenderer.setColor(Color.GRAY);
@@ -219,8 +226,8 @@ public class FireballTheGame extends ApplicationAdapter {
 		spriteBatch.begin();
 //		background.draw(spriteBatch, dt);
 		player.draw(spriteBatch, dt);
-		animate(gameObjects, dt);
 		guiMaster.draw(spriteBatch, dt);
+		animate(gameObjects, dt);
 		spriteBatch.end();
 
 		// Debug stuff
@@ -312,6 +319,9 @@ public class FireballTheGame extends ApplicationAdapter {
 		List<GameObject> toRemove = new ArrayList<GameObject>();
 		List<GameObject> toAdd = new ArrayList<GameObject>();
 		for (GameObject gameObject: gameObjects) {
+			if (gameObject.getClass() == Fireball.class) {
+				stats.addScore(((Fireball)gameObject).getScore());
+			}
 			if (gameObject.finished()) {
 				GameObject lastWords = gameObject.clean();
 				if (lastWords != null) toAdd.add(lastWords);

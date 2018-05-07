@@ -10,13 +10,16 @@ public class GUImaster implements Animatable {
     private FreeTypeFontGenerator.FreeTypeFontParameter parameter;
     private static BitmapFont bitmapFont;
     GUIPlay guiPlay;
+    Stats stats;
 
-    GUImaster() {
+    GUImaster(Stats s) {
         parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        parameter.size = 10;
+        parameter.size = 60;
+        stats = s;
+
         bitmapFont = generator.generateFont(parameter);
 
-        guiPlay = new GUIPlay(bitmapFont);
+        guiPlay = new GUIPlay(bitmapFont, stats);
     }
 
     public static void build() {
