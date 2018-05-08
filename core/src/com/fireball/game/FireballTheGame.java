@@ -76,6 +76,7 @@ public class FireballTheGame extends ApplicationAdapter {
 		Explosion.build();
 		Background.build();
 		GUImaster.build();
+		ScoreFeedback.build();
 
 		// Initialize game objects
 		background = new Background();
@@ -175,13 +176,16 @@ public class FireballTheGame extends ApplicationAdapter {
 				}
 
 				if (fireball != null && !fireball.finished() && candle != null) {
-					fireball.successfulHit();
-					candle.ignite();
-					if (!hitSensor) {
+					if (candle.ignite()) {
+                        fireball.successfulHit();
+                        gameObjects.add(new ScoreFeedback(fireball.getBodyCenter().cpy(), fireball.getScore()));
+                        if (!hitSensor) {
 //						gameObjects.remove(fireball);
-						if (!destroyables.contains(fireball)) destroyables.add(fireball);
-						gameObjects.add(fireball.explode());
-					}
+                            if (!destroyables.contains(fireball)) destroyables.add(fireball);
+                            gameObjects.add(fireball.explode());
+                        }
+                    }
+
 				}
 			}
 
@@ -249,6 +253,7 @@ public class FireballTheGame extends ApplicationAdapter {
 		world.dispose();
 		GUImaster.dispose();
 		debugRenderer.dispose();
+		ScoreFeedback.dispose();
 	}
 
 	@Override

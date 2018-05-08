@@ -23,6 +23,7 @@ public class Fireball extends GameObject {
     private float stateTime;
     private boolean exploded;
     private float offsetX, offsetY;
+    private Vector2 bodyCenter;
     private float r, k;
     private Score score;
 
@@ -40,6 +41,7 @@ public class Fireball extends GameObject {
         exploded = false;
         stateTime = 0f;
         score = new Score();
+        bodyCenter = new Vector2(0, 0);
 
         // Create physics body
         body = physicsBodies.createBody("fireballNoAnim", world, SCALE, SCALE);
@@ -82,6 +84,9 @@ public class Fireball extends GameObject {
         float textureOffsetX = (float) (r * Math.cos(k + Math.toRadians(rotation)));
         float textureOffsetY = (float) (r * Math.sin(k + Math.toRadians(rotation)));
 
+        bodyCenter.x = bodyRelPosX;
+        bodyCenter.y = bodyRelPosY;
+
         x = bodyRelPosX - textureOffsetX - offsetX;
         y = bodyRelPosY - textureOffsetY - offsetY;
 
@@ -122,10 +127,14 @@ public class Fireball extends GameObject {
     }
 
     public Score getScore() {
-        return score.clearScore();
+        return score;
     }
 
     public void successfulHit() {
         score.addScore();
+    }
+
+    public Vector2 getBodyCenter() {
+        return bodyCenter;
     }
 }

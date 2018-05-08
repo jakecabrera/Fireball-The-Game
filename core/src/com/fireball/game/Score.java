@@ -1,29 +1,30 @@
 package com.fireball.game;
 
 public class Score {
-    private int score;
+    private int points;
     private int mult;
     private static final int CANDLE_POINTS = 100;
 
     Score() {
-        score = 0;
+        points = 0;
         mult = 1;
     }
 
     Score(int s, int m) {
-        score = s;
+        points = s;
         mult = m;
     }
 
     public void addScore() {
-        score += CANDLE_POINTS * mult++;
+        points += CANDLE_POINTS * mult;
+        mult *= 2;
     }
 
-    public int getScore() {return score;}
+    public int getPoints() {return points;}
 
-    public Score clearScore() {
-        int tmp = score;
-        score = 0;
-        return new Score(tmp, mult);
+    public int clearScore() {
+        int tmp = points;
+        points = 0;
+        return tmp;
     }
 }

@@ -39,11 +39,13 @@ public class Candle extends GameObject {
         litCandleAnimation = AnimationBuilder.build(litCandleSheet, FRAME_ROWS, FRAME_COLS, .083f);
     }
 
-    public void ignite() {
+    public boolean ignite() {
         if (timeLit == 0) {
             timeLit = stateTime;
             isLit = !isLit;
+            return true;
         }
+        return false;
     }
 
     @Override

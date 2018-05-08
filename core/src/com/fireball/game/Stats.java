@@ -24,6 +24,6 @@ public class Stats {
     }
 
     public void addScore(Score s) {
-        score += s.getScore();
+        score += s.clearScore();
     }
 }
